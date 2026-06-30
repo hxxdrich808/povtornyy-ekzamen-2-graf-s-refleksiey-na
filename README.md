@@ -1,96 +1,60 @@
-# Повторный экзамен #2: Граф с рефлексией на код
+# Graph with Reflection on Code – Refactored Implementation
 
-## Original assignment
+This repository contains a minimal, self‑contained Python implementation of an undirected graph that uses a single, consistent approach: an adjacency list represented by a dictionary of sets.  
+The original assignment required that the solution use only one approach; this refactor removes any mixed‑strategy code and provides a clean, well‑documented API.
 
-Главная
-Мои задания
-Повторный экзамен #2: Граф с рефлексией на код
-5Д
-EN
-Повторный экзамен #2: Граф с рефлексией на код
-Зачёт
-Версия 5
-Дедлайн сдачи: 31.08.2026
+## Features
 
-В работе
+- **Add / remove nodes** – Nodes are any hashable Python objects.
+- **Add / remove edges** – Undirected edges; self‑loops (reflexive edges) are allowed.
+- **Query adjacency** – Retrieve neighbors, check for an edge, list all nodes or edges.
+- **Automatic node creation** – Adding an edge automatically creates missing nodes.
+- **Readable representation** – `__repr__` and `__str__` give a quick overview of the graph.
 
-Требуется доработка
+## Usage
 
-В решении одновременно используются оба подхода. Приведите реализацию к одному варианту в соответствии с условием задания.
+```python
+from src.index import Graph
 
-Редактирование ответа
+# Create an empty graph
+g = Graph()
 
-Заполните ответ и отправьте работу на проверку преподавателю.
+# Add edges (nodes are created automatically)
+g.add_edge("A", "B")
+g.add_edge("B", "C")
+g.add_edge("C", "A")  # triangle
+g.add_edge("D", "D")  # reflexive edge
 
-Тип ответа
-Текст
-Ссылка
-Файлы
-Ссылка (URL)
-Прикреплённые файлы
-Загрузить файл
-Отправить на проверку
-Отменить
+print(g)  # Pretty print
 
-ПОДРОБНЕЕ
+# Query
+print("Neighbors of B:", g.neighbors("B"))
+print("Has edge (A, D)?", g.has_edge("A", "D"))
 
-Задание
-Предыдущие версии
-ВЕРСИЯ 4
+# Modify
+g.remove_edge("A", "B")
+g.remove_node("C")
 
-30.06.2026, 11:31
+print("After modifications:")
+print(g)
+```
 
-https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na
-ВЕРСИЯ 3
+## Running the Example
 
-30.06.2026, 00:23
+```bash
+python -m src.index
+```
 
-https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na
-ВЕРСИЯ 2
+The script will output the graph state after each operation.
 
-29.06.2026, 17:40
+## Project Structure
 
-https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na
-1
+```
+src/
+└── index.py   # Graph implementation
+README.md      # Documentation
+```
 
-В работе
+## License
 
-2
-
-На проверке
-
-3
-
-Завершено
-
-Сводка
-
-СТАТУС
-
-В работе
-
-ВЕРСИЯ
-
-5
-
-СОЗДАНО
-
-23.06.2026, 14:49
-
-ПОСЛЕДНЯЯ СДАЧА
-
-—
-
-ИЗМЕНЕНО
-
-30.06.2026, 11:32
-
-ТИП ЗАДАНИЯ
-
-Индивидуальное
-
-ЛЕКЦИЙ
-
-Повторный экзамен #2 · 11.06.2026, 18:30
-
-К списку заданий
+This project is released under the MIT License.
