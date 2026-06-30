@@ -1,79 +1,87 @@
-const { Graph } = require('../src');
+const { createGraph } = require('../src/index');
 
-describe('Graph', () => {
-  let g;
-
+describe('Graph with reflection', () => {
+  let graph;
   beforeEach(() => {
-    g = new Graph();
+    graph = createGraph();
   });
 
-  test('initially empty', () => {
-    expect(g.size()).toBe(0);
-    expect(g.edgesCount()).toBe(0);
+  test('initial log is empty', () => {
+    expect(graph.getLog()).toEqual([]);
   });
 
-  test('addVertex increases size and adds reflexive edge', () => {
-    g.addVertex('a');
-    expect(g.size()).toBe(1);
-    expect(g.isReflexive()).toBe(true);
-    expect(g.hasEdge('a', 'a')).toBe(true);
+  test('addNode records operation', () => {
+    graph.addNode('a');
+    expect(graph.getLog()).toEqual([{ method: 'addNode', args: ['a'] }]);
+    expect(graph.getNodes()).toEqual(['a']);
   });
 
-  test('addEdge connects vertices and updates adjacency', () => {
-    g.addEdge('a', 'b');
-    expect(g.size()).toBe(2);
-    expect(g.hasEdge('a', 'b')).toBe(true);
-    expect(g.hasEdge('b', 'a')).toBe(true);
-    expect(g.getNeighbors('a')).toEqual(expect.arrayContaining(['a', 'b']));
-    expect(g.getNeighbors('b')).toEqual(expect.arrayContaining(['a', 'b']));
+  test('addEdge records operation and creates nodes', () => {
+    graph.addEdge('a', 'b');
+    expect(graph.getLog()).toEqual([{ method: 'addEdge', args: ['a', 'b'] }]);
+    expect(graph.getNodes().sort()).toEqual(['a', 'b']);
+    expect(graph.getNeighbors('a')).toEqual(['b']);
+    expect(graph.getNeighbors('b')).toEqual(['a']);
+    expect(graph.hasEdge('a', 'b')).toBe(true);
   });
 
-  test('removeEdge removes connection', () => {
-    g.addEdge('a', 'b');
-    g.removeEdge('a', 'b');
-    expect(g.hasEdge('a', 'b')).toBe(false);
-    expect(g.hasEdge('b', 'a')).toBe(false);
-    // self-loops remain
-    expect(g.hasEdge('a', 'a')).toBe(true);
-    expect(g.hasEdge('b', 'b')).toBe(true);
+  test('removeEdge records operation', () => {
+    graph.addEdge('a', 'b');
+    graph.removeEdge('a', 'b');
+    expect(graph.getLog()).toEqual([
+      { method: 'addEdge', args: ['a', 'b'] },
+      { method: 'removeEdge', args: ['a', 'b'] }
+    ]);
+    expect(graph.hasEdge('a', 'b')).toBe(false);
   });
 
-  test('removeVertex removes vertex and incident edges', () => {
-    g.addEdge('a', 'b');
-    g.addEdge('a', 'c');
-    g.removeVertex('a');
-    expect(g.size()).toBe(2);
-    expect(g.hasEdge('b', 'a')).toBe(false);
-    expect(g.hasEdge('c', 'a')).toBe(false);
-    expect(g.hasEdge('b', 'c')).toBe(false);
+  test('removeNode records operation and removes edges', () => {
+    graph.addEdge('a', 'b');
+    graph.addEdge('a', 'c');
+    graph.removeNode('a');
+    expect(graph.getLog()).toEqual([
+      { method: 'addEdge', args: ['a', 'b'] },
+      { method: 'addEdge', args: ['a', 'c'] },
+      { method: 'removeNode', args: ['a'] }
+    ]);
+    expect(graph.getNodes().sort()).toEqual(['b', 'c']);
+    expect(graph.getNeighbors('b')).toEqual([]);
+    expect(graph.getNeighbors('c')).toEqual([]);
   });
 
-  test('edges and edgesCount work correctly', () => {
-    g.addEdge('a', 'b');
-    g.addEdge('b', 'c');
-    g.addEdge('c', 'a');
-    expect(g.edgesCount()).toBe(3);
-    const edges = g.edges();
-    expect(edges).toEqual(expect.arrayContaining([
-      ['a', 'b'],
-      ['b', 'c'],
-      ['c', 'a']
-    ]));
+  test('getNeighbors does not record operation', () => {
+    graph.addNode('a');
+    graph.getNeighbors('a');
+    expect(graph.getLog()).toEqual([{ method: 'addNode', args: ['a'] }]);
   });
 
-  test('self-loop handling', () => {
-    g.addVertex('x');
-    expect(g.hasEdge('x', 'x')).toBe(true);
-    g.removeEdge('x', 'x');
-    expect(g.hasEdge('x', 'x')).toBe(false);
+  test('log is a copy and not affected by external mutation', () => {
+    graph.addNode('a');
+    const log = graph.getLog();
+    log.push({ method: 'fake', args: [] });
+    expect(graph.getLog()).toEqual([{ method: 'addNode', args: ['a'] }]);
   });
 
-  test('reflexivity can be toggled', () => {
-    g.addVertex('p');
-    g.addVertex('q');
-    g.removeReflexive();
-    expect(g.isReflexive()).toBe(false);
-    g.makeReflexive();
-    expect(g.isReflexive()).toBe(true);
+  test('graph uses adjacency list internally', () => {
+    graph.addNode('a');
+    expect(graph.adj instanceof Map).toBe(true);
+    expect(graph.adj.get('a') instanceof Set).toBe(true);
+  });
+
+  test('handles duplicate nodes and edges gracefully', () => {
+    graph.addNode('a');
+    graph.addNode('a');
+    expect(graph.getNodes()).toEqual(['a']);
+    graph.addEdge('a', 'a');
+    expect(graph.hasEdge('a', 'a')).toBe(true);
+    graph.addEdge('a', 'a');
+    expect(graph.getNeighbors('a')).toEqual(['a']);
+  });
+
+  test('handles non-existing nodes and edges', () => {
+    expect(graph.getNeighbors('x')).toEqual([]);
+    expect(graph.hasEdge('x', 'y')).toBe(false);
+    graph.removeEdge('x', 'y'); // should not throw
+    graph.removeNode('x'); // should not throw
   });
 });
