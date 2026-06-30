@@ -1,0 +1,19 @@
+{
+  "name": "graph-reflexive",
+  "version": "1.0.0",
+  "description": "Graph implementation with reflexive property using adjacency list",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "graph",
+    "reflexive",
+    "adjacency-list"
+  ],
+  "author": "Auto-generated",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

@@ -1,81 +1,96 @@
-# Graph with Reflection on Code
+# Повторный экзамен #2: Граф с рефлексией на код
 
-This repository demonstrates how to build a conversational agent that can analyze and reflect on Python code using **LangGraph** and **LangChain OpenAI**. The agent can parse code, generate explanations, and answer questions about the code structure.
+## Original assignment
 
-## Features
+Главная
+Мои задания
+Повторный экзамен #2: Граф с рефлексией на код
+5Д
+EN
+Повторный экзамен #2: Граф с рефлексией на код
+Зачёт
+Версия 5
+Дедлайн сдачи: 31.08.2026
 
-- **LangGraph**: Orchestrates the conversation flow and manages state across multiple turns.
-- **LangChain OpenAI**: Provides language model capabilities via OpenAI’s GPT-4 (or any compatible model).
-- Code parsing and analysis using the `ast` module.
-- Interactive CLI for asking questions about a Python file.
+В работе
 
-## Getting Started
+Требуется доработка
 
-### Prerequisites
+В решении одновременно используются оба подхода. Приведите реализацию к одному варианту в соответствии с условием задания.
 
-- Python 3.10+
-- An OpenAI API key. Set it in your environment:
+Редактирование ответа
 
-```bash
-export OPENAI_API_KEY="your_api_key_here"
-```
+Заполните ответ и отправьте работу на проверку преподавателю.
 
-### Installation
+Тип ответа
+Текст
+Ссылка
+Файлы
+Ссылка (URL)
+Прикреплённые файлы
+Загрузить файл
+Отправить на проверку
+Отменить
 
-```bash
-# Clone the repository
-git clone https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na.git
-cd povtornyy-ekzamen-2-graf-s-refleksiey-na
+ПОДРОБНЕЕ
 
-# Create a virtual environment (optional but recommended)
-python -m venv .venv
-source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+Задание
+Предыдущие версии
+ВЕРСИЯ 4
 
-# Install dependencies
-pip install -r requirements.txt
-```
+30.06.2026, 11:31
 
-`requirements.txt` contains:
+https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na
+ВЕРСИЯ 3
 
-```
-langchain==0.2.0
-langgraph==0.1.0
-openai==1.0.0
-```
+30.06.2026, 00:23
 
-### Usage
+https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na
+ВЕРСИЯ 2
 
-Run the main script and provide the path to a Python file you want to analyze:
+29.06.2026, 17:40
 
-```bash
-python main.py path/to/your_script.py
-```
+https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na
+1
 
-You will be prompted to ask questions about the code. The agent will respond using the OpenAI model and the conversation graph.
+В работе
 
-### Example
+2
 
-```bash
-$ python main.py example.py
-Enter your question (or type 'exit' to quit): What does the `add` function do?
-The `add` function takes two numbers, `a` and `b`, and returns their sum.
-```
+На проверке
 
-## Project Structure
+3
 
-```
-povtornyy-ekzamen-2-graf-s-refleksiey-na/
-├── main.py          # Entry point
-├── code_analyzer.py # Code parsing utilities
-├── graph.py         # LangGraph definition
-├── requirements.txt
-└── README.md
-```
+Завершено
 
-## License
+Сводка
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+СТАТУС
 
----
+В работе
 
-*This project was developed as part of a coursework assignment. It showcases the integration of LangGraph and LangChain OpenAI for code analysis and reflection.*
+ВЕРСИЯ
+
+5
+
+СОЗДАНО
+
+23.06.2026, 14:49
+
+ПОСЛЕДНЯЯ СДАЧА
+
+—
+
+ИЗМЕНЕНО
+
+30.06.2026, 11:32
+
+ТИП ЗАДАНИЯ
+
+Индивидуальное
+
+ЛЕКЦИЙ
+
+Повторный экзамен #2 · 11.06.2026, 18:30
+
+К списку заданий
