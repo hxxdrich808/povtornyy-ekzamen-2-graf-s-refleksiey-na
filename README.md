@@ -1,40 +1,71 @@
-# LangGraph Reflection Example
+# Graph with Reflection on Code
 
-This repository demonstrates a simple **LangGraph** workflow that performs reflection on a Python function's source code. The graph consists of three nodes:
-
-1. **start_node** – Initializes the graph state.
-2. **reflect_node** – Uses Python's `inspect` module to retrieve the source code of `target_function`.
-3. **end_node** – Prints the reflected source code.
+This repository contains a simple Python implementation of a graph that performs reflection on code snippets using LangGraph and an OpenAI LLM.
 
 ## Requirements
 
-- Python 3.x
-- `langchain_openai`
-- `langchain_core`
+- Python 3.10+
 - `langgraph`
+- `langchain-openai`
+- `openai`
 
-Install the dependencies with:
+## Setup
+
+1. Create a virtual environment (optional but recommended):
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+```
+
+2. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Example
+3. Set your OpenAI API key:
+
+```bash
+export OPENAI_API_KEY="your_api_key_here"
+```
+
+## Running the Graph
+
+The graph is defined in `src/main.py`. To run it with a sample code snippet:
 
 ```bash
 python src/main.py
 ```
 
-You should see the source code of `target_function` printed to the console.
+You should see a reflection printed to the console.
 
-## Project Structure
+## Using the Graph Programmatically
 
+You can import the `run_graph` function from `src/main.py` and pass any code snippet:
+
+```python
+from src.main import run_graph
+
+code = """
+def add(a, b):
+    return a + b
+"""
+
+reflection = run_graph(code)
+print(reflection)
 ```
-├── requirements.txt
-├── src
-│   ├── __init__.py
-│   └── main.py
-└── README.md
-```
 
-No JavaScript code is included; the entire project is implemented in Python using the LangGraph framework.
+## How Reflection Works
+
+The graph has three nodes:
+
+1. **Input Node** – Receives the code snippet.
+2. **Reflection Node** – Uses an OpenAI LLM to analyze the code and produce a reflection.
+3. **Output Node** – Returns the reflection.
+
+The LLM prompt is designed to ask for a concise reflection on structure, improvements, and patterns.
+
+## License
+
+MIT License

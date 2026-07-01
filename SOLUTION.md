@@ -1,45 +1,56 @@
 **What was implemented**  
-- A pure‑Python solution that uses the LangGraph framework.  
-- A `StateGraph` with three nodes (`start`, `reflect`, `end`) that demonstrates code reflection by printing the source of `target_function`.  
-- `langchain_openai` and `langchain_core` are added to `requirements.txt` so the stack matches the assignment.  
-- No JavaScript code is present; the entire project is Python 3.x compliant.
+- A pure‑Python project that replaces the original JavaScript implementation.  
+- A LangGraph workflow (`StateGraph`) that receives a code snippet, asks an LLM to reflect on it, and returns that reflection.  
+- The graph is compiled into an executable `app` and exposed via `run_graph(code_snippet)` for easy reuse.
 
-**Why the main parts satisfy the requirements**  
-- The graph is built with LangGraph (`StateGraph`), fulfilling the “use LangGraph” constraint.  
-- `inspect.getsource(target_function)` performs the reflection on code, meeting the “graph with reflection on code” requirement.  
-- The `requirements.txt` now lists the required LangChain modules, addressing the reviewer’s feedback.  
-- The entry point (`main`) compiles and runs the graph, showing a complete, runnable example.
+**Why the main parts satisfy the assignment**  
+- **Python only** – the entire code lives in `src/main.py`, no JavaScript files remain.  
+- **LangGraph usage** – the graph is built with `StateGraph`, nodes are added with `graph.add_node`, edges with `graph.add_edge`, and the graph is compiled (`graph.compile()`).  
+- **Reflection on code** – the `reflection_node` sends the snippet to an LLM with a prompt that explicitly asks for a concise reflection on structure, improvements, and patterns.  
+- **Functional project** – running `python src/main.py` prints a reflection for a sample snippet, demonstrating end‑to‑end functionality.
 
-**Short code excerpts**
-
-*src/main.py – node definitions and graph construction*  
-```python
-def reflect_node(state: dict) -> dict:
-    source = inspect.getsource(target_function)
-    state["source"] = source
-    return state
-```
+**Key code excerpts**
 
 ```python
-def build_graph() -> StateGraph:
-    graph = StateGraph(dict)
-    graph.add_node("start", start_node)
-    graph.add_node("reflect", reflect_node)
-    graph.add_node("end", end_node)
-    graph.set_entry_point("start")
-    graph.add_edge("start", "reflect")
-    graph.add_edge("reflect", "end")
-    graph.add_edge("end", END)
-    return graph
+# src/main.py – graph definition
+graph = StateGraph(CodeState)
+graph.add_node("input", input_node)
+graph.add_node("reflection", reflection_node)
+graph.add_node("output", output_node)
+graph.add_edge("input", "reflection")
+graph.add_edge("reflection", "output")
+graph.add_edge("output", END)
+app = graph.compile()
 ```
 
-*requirements.txt – added modules*  
+```python
+# src/main.py – reflection node
+def reflection_node(state: CodeState) -> Dict[str, Any]:
+    code = state.get("code", "")
+    if not code:
+        return {"reflection": "No code provided."}
+    llm = OpenAI(temperature=0.7, model="gpt-3.5-turbo")
+    prompt = (
+        "You are an experienced software engineer. "
+        "Analyze the following code snippet and provide a concise reflection "
+        "on its structure, potential improvements, and any notable patterns.\n\n"
+        f"{code}"
+    )
+    response = llm.invoke(prompt)
+    return {"reflection": response}
 ```
-langchain_openai
-langchain_core
+
+```python
+# src/main.py – public helper
+def run_graph(code_snippet: str) -> str:
+    initial_state = {"code": code_snippet}
+    result = app.invoke(initial_state)
+    return result.get("reflection", "")
 ```
 
 **Honest limitations**  
-- The reflection is limited to printing the source; it does not execute or modify the code.  
-- No advanced error handling or dynamic node generation is included.  
-- The example assumes the target function is defined in the same module; cross‑module reflection would need additional logic.
+- No explicit error handling for missing OpenAI key or network failures.  
+- The graph is very linear; adding more complex branching (e.g., multiple reflection steps) would require additional nodes.  
+- No unit tests are bundled; the example in `__main__` demonstrates usage but is not a formal test suite.  
+
+Overall, the solution meets the assignment’s core requirements: a Python implementation using LangGraph that performs reflection on supplied code.

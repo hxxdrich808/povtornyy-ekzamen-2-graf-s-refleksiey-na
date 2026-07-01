@@ -1,84 +1,105 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
+#!/usr/bin/env python3
 """
-A simple LangGraph example that demonstrates reflection on code.
-The graph has three nodes:
-1. start_node - initializes the state.
-2. reflect_node - introspects the source code of `target_function`.
-3. end_node - prints the reflected source code.
+Graph with reflection on code using LangGraph.
+
+This script defines a simple LangGraph workflow that takes a code snippet,
+passes it to an LLM for reflection, and outputs the reflection.
+
+Requirements:
+- langgraph
+- langchain-openai
+- openai
+
+Set the environment variable OPENAI_API_KEY with your OpenAI API key.
 """
 
-import inspect
+import os
+from typing import Dict, Any
+
 from langgraph.graph import StateGraph, END
+from langchain_openai import OpenAI
 
-# Define a target function whose source code will be reflected.
-def target_function(x: int, y: int) -> int:
+# Define the state type for the graph
+class CodeState(dict):
     """
-    Adds two integers and returns the result.
+    State dictionary that holds the code snippet and the reflection.
     """
-    return x + y
+    pass
 
-# Node definitions
-def start_node(state: dict) -> dict:
+def input_node(state: CodeState) -> Dict[str, Any]:
     """
-    Entry point of the graph. Sets an initial message.
+    Entry node that simply passes the code snippet through.
     """
-    state["message"] = "Graph started."
-    return state
+    # The state is expected to contain a 'code' key.
+    return {"code": state.get("code", "")}
 
-def reflect_node(state: dict) -> dict:
+def reflection_node(state: CodeState) -> Dict[str, Any]:
     """
-    Retrieves the source code of `target_function` using inspect.
-    Stores the source code in the state under the key 'source'.
+    Node that uses an LLM to generate a reflection on the provided code.
     """
-    source = inspect.getsource(target_function)
-    state["source"] = source
-    return state
+    code = state.get("code", "")
+    if not code:
+        return {"reflection": "No code provided."}
 
-def end_node(state: dict) -> dict:
+    # Initialize the LLM
+    llm = OpenAI(temperature=0.7, model="gpt-3.5-turbo")
+
+    # Prompt the LLM to analyze the code and provide reflection
+    prompt = (
+        "You are an experienced software engineer. "
+        "Analyze the following code snippet and provide a concise reflection "
+        "on its structure, potential improvements, and any notable patterns.\n\n"
+        f"{code}"
+    )
+
+    # Invoke the LLM
+    response = llm.invoke(prompt)
+
+    # The response is a string; store it in the state
+    return {"reflection": response}
+
+def output_node(state: CodeState) -> Dict[str, Any]:
     """
-    Final node that prints the reflected source code.
+    Final node that simply returns the reflection.
     """
-    print("\n=== Reflected Source Code ===")
-    print(state.get("source", "No source found."))
-    print("=============================\n")
-    return state
+    return {"reflection": state.get("reflection", "")}
 
 # Build the graph
-def build_graph() -> StateGraph:
+graph = StateGraph(CodeState)
+
+# Add nodes
+graph.add_node("input", input_node)
+graph.add_node("reflection", reflection_node)
+graph.add_node("output", output_node)
+
+# Define edges
+graph.add_edge("input", "reflection")
+graph.add_edge("reflection", "output")
+graph.add_edge("output", END)
+
+# Compile the graph into an executable app
+app = graph.compile()
+
+def run_graph(code_snippet: str) -> str:
     """
-    Constructs and returns a LangGraph StateGraph with the defined nodes.
+    Run the graph with the provided code snippet and return the reflection.
     """
-    graph = StateGraph(dict)
-
-    # Add nodes
-    graph.add_node("start", start_node)
-    graph.add_node("reflect", reflect_node)
-    graph.add_node("end", end_node)
-
-    # Define entry point and edges
-    graph.set_entry_point("start")
-    graph.add_edge("start", "reflect")
-    graph.add_edge("reflect", "end")
-    graph.add_edge("end", END)
-
-    return graph
-
-def main() -> None:
-    """
-    Main entry point for running the graph.
-    """
-    graph = build_graph()
-    app = graph.compile()
-
-    # Invoke the graph with an empty initial state
-    try:
-        result = app.invoke({})
-        # The result contains the final state; we can inspect it if needed.
-        # For this example, the end_node already prints the source code.
-    except Exception as e:
-        print(f"An error occurred while running the graph: {e}")
+    # Prepare the initial state
+    initial_state = {"code": code_snippet}
+    # Invoke the graph
+    result = app.invoke(initial_state)
+    # Extract the reflection
+    return result.get("reflection", "")
 
 if __name__ == "__main__":
-    main()
+    # Example usage
+    sample_code = """
+def factorial(n):
+    if n == 0:
+        return 1
+    else:
+        return n * factorial(n-1)
+"""
+    reflection = run_graph(sample_code)
+    print("Reflection on code:")
+    print(reflection)
