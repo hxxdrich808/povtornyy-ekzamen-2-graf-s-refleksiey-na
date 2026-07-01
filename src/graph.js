@@ -1,153 +1,66 @@
-/**
- * Graph implementation using adjacency list.
- * Each vertex automatically has a self-loop (reflexive edge).
- * The graph is undirected.
- */
-class Graph {
+// src/graph.js
+// A simple graph implementation with reflexive edge support
+// This module is pure JavaScript and can be used in both Node and browser environments.
+
+export class Graph {
   constructor() {
-    /** @type {Map<*, Set<*>>} */
+    // adjacency list: nodeId -> Set of neighbor nodeIds
     this.adj = new Map();
+    // node properties: nodeId -> {label, ...}
+    this.nodes = new Map();
   }
 
-  /**
-   * Adds a vertex to the graph.
-   * If the vertex already exists, nothing changes.
-   * A self-loop is automatically added to make the graph reflexive.
-   * @param {*} v
-   */
-  addVertex(v) {
-    if (!this.adj.has(v)) {
-      this.adj.set(v, new Set([v]));
+  // Add a node with optional properties
+  addNode(id, props = {}) {
+    if (this.nodes.has(id)) {
+      throw new Error(`Node ${id} already exists`);
+    }
+    this.nodes.set(id, { id, ...props });
+    this.adj.set(id, new Set());
+  }
+
+  // Add a directed edge from src to dst
+  addEdge(src, dst) {
+    if (!this.nodes.has(src) || !this.nodes.has(dst)) {
+      throw new Error(`Both nodes must exist to add an edge: ${src} -> ${dst}`);
+    }
+    this.adj.get(src).add(dst);
+  }
+
+  // Return array of neighbor ids for a node
+  neighbors(id) {
+    if (!this.adj.has(id)) return [];
+    return Array.from(this.adj.get(id));
+  }
+
+  // Add reflexive edges (self-loops) to all nodes
+  addReflexiveEdges() {
+    for (const id of this.nodes.keys()) {
+      this.adj.get(id).add(id);
     }
   }
 
-  /**
-   * Adds an undirected edge between u and v.
-   * Vertices are added automatically if they do not exist.
-   * @param {*} u
-   * @param {*} v
-   */
-  addEdge(u, v) {
-    this.addVertex(u);
-    this.addVertex(v);
-    this.adj.get(u).add(v);
-    this.adj.get(v).add(u);
-  }
-
-  /**
-   * Removes the undirected edge between u and v.
-   * If the edge does not exist, nothing happens.
-   * @param {*} u
-   * @param {*} v
-   */
-  removeEdge(u, v) {
-    if (this.adj.has(u)) this.adj.get(u).delete(v);
-    if (this.adj.has(v)) this.adj.get(v).delete(u);
-  }
-
-  /**
-   * Removes a vertex and all incident edges.
-   * @param {*} v
-   */
-  removeVertex(v) {
-    if (!this.adj.has(v)) return;
-    for (const neighbor of this.adj.get(v)) {
-      if (neighbor !== v) this.adj.get(neighbor).delete(v);
-    }
-    this.adj.delete(v);
-  }
-
-  /**
-   * Checks whether an edge exists between u and v.
-   * @param {*} u
-   * @param {*} v
-   * @returns {boolean}
-   */
-  hasEdge(u, v) {
-    return this.adj.has(u) && this.adj.get(u).has(v);
-  }
-
-  /**
-   * Returns an array of neighbors of vertex v.
-   * @param {*} v
-   * @returns {Array<*>}
-   */
-  getNeighbors(v) {
-    return this.adj.has(v) ? Array.from(this.adj.get(v)) : [];
-  }
-
-  /**
-   * Returns an array of all vertices in the graph.
-   * @returns {Array<*>}
-   */
-  vertices() {
-    return Array.from(this.adj.keys());
-  }
-
-  /**
-   * Returns an array of all edges as [u, v] pairs.
-   * Each undirected edge appears only once.
-   * @returns {Array<[*, *]>}
-   */
-  edges() {
+  // Return a plain object representation (useful for serialization)
+  toJSON() {
+    const nodes = Array.from(this.nodes.values());
     const edges = [];
-    const seen = new Set();
-    for (const [u, neighbors] of this.adj.entries()) {
-      for (const v of neighbors) {
-        const key = u < v ? `${u}-${v}` : `${v}-${u}`;
-        if (!seen.has(key)) {
-          edges.push([u, v]);
-          seen.add(key);
-        }
+    for (const [src, dstSet] of this.adj.entries()) {
+      for (const dst of dstSet) {
+        edges.push({ src, dst });
       }
     }
-    return edges;
+    return { nodes, edges };
   }
 
-  /**
-   * Returns the number of vertices.
-   * @returns {number}
-   */
-  size() {
-    return this.adj.size;
-  }
-
-  /**
-   * Returns the number of undirected edges.
-   * @returns {number}
-   */
-  edgesCount() {
-    return this.edges().length;
-  }
-
-  /**
-   * Checks whether the graph is reflexive (every vertex has a self-loop).
-   * @returns {boolean}
-   */
-  isReflexive() {
-    for (const [v, neighbors] of this.adj.entries()) {
-      if (!neighbors.has(v)) return false;
+  // Static helper to create a graph from a JSON representation
+  static fromJSON(json) {
+    const g = new Graph();
+    for (const node of json.nodes) {
+      g.addNode(node.id, node);
     }
-    return true;
-  }
-
-  /**
-   * Adds self-loops to all vertices, making the graph reflexive.
-   */
-  makeReflexive() {
-    for (const v of this.adj.keys()) {
-      this.adj.get(v).add(v);
+    for (const edge of json.edges) {
+      g.addEdge(edge.src, edge.dst);
     }
-  }
-
-  /**
-   * Removes self-loops from all vertices.
-   */
-  removeReflexive() {
-    for (const [v, neighbors] of this.adj.entries()) {
-      neighbors.delete(v);
-    }
+    return g;
   }
 }
-
-module.exports = Graph;

@@ -1,72 +1,60 @@
-# Graph with Reflexivity
+# Graph with Reflection on Code
 
-A lightweight JavaScript implementation of a directed graph where every node automatically has a self‑loop (reflexive edge).  
-The library is intentionally minimal and does **not** depend on any external graph libraries or Python code.
+This project demonstrates a simple graph data structure and its visualization using D3.js.  
+The graph supports adding nodes, directed edges, and reflexive edges (self‑loops).  
+The UI renders the graph in an SVG canvas with a force‑directed layout.
 
 ## Features
 
-- **Automatic reflexivity** – when a node is added, an edge from the node to itself is created.
-- **Directed edges** – you can add edges in any direction.
-- **Simple API** – add nodes, add edges, query edges, list nodes, list edges.
-- **Pure JavaScript** – works in Node.js environments.
+- Pure JavaScript implementation (no Python or other languages).
+- Reflexive edges can be added automatically.
+- Interactive visualization with drag support.
+- Simple test suite using Jest.
 
-## Installation
+## Getting Started
 
-```bash
-npm install graph-reflexivity
+1. **Clone the repository**
+
+   ```bash
+   git clone https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na.git
+   cd povtornyy-ekzamen-2-graf-s-refleksiey-na
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Run the application**
+
+   ```bash
+   npm start
+   ```
+
+   Open your browser at `http://localhost:3000` (or the port shown in the console).
+
+4. **Run tests**
+
+   ```bash
+   npm test
+   ```
+
+## Project Structure
+
 ```
-
-> If you want to run the tests or develop locally, clone the repository and run `npm install`.
-
-## Usage
-
-```js
-const Graph = require('graph-reflexivity');
-
-const g = new Graph();
-
-// Add nodes
-g.addNode('A');
-g.addNode('B');
-
-// Add directed edge A → B
-g.addEdge('A', 'B');
-
-// Reflexive edges are automatically added
-console.log(g.hasEdge('A', 'A')); // true
-console.log(g.hasEdge('B', 'B')); // true
-
-// Query
-console.log(g.getNeighbors('A')); // ['A', 'B']
-console.log(g.nodes());          // ['A', 'B']
-console.log(g.edges());          // [['A', 'A'], ['B', 'B'], ['A', 'B']]
+├── public
+│   └── index.html          # Entry point for the browser
+├── src
+│   ├── index.js            # Application bootstrap
+│   ├── graph.js            # Graph data structure
+│   └── ui.js               # Rendering logic
+├── __tests__
+│   └── graph.test.js       # Jest tests for Graph
+├── package.json
+└── README.md
 ```
-
-## API
-
-| Method | Description |
-|--------|-------------|
-| `addNode(node)` | Adds a node and its reflexive edge. |
-| `addEdge(from, to)` | Adds a directed edge; missing nodes are created automatically. |
-| `hasEdge(from, to)` | Returns `true` if an edge exists. |
-| `getNeighbors(node)` | Returns an array of all neighbors of `node`. |
-| `nodes()` | Returns an array of all nodes. |
-| `edges()` | Returns an array of `[from, to]` pairs for all edges. |
-
-## Testing
-
-The project uses Jest for unit tests.
-
-```bash
-npm test
-```
-
-All tests are located in the `tests/` directory.
 
 ## License
 
-MIT © Your Name
-
---- 
-
-Feel free to open issues or pull requests if you find bugs or want to add features.
+MIT License
