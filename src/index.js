@@ -1,83 +1,93 @@
+/**
+ * Graph with reflexivity (self‑loops on every node).
+ *
+ * The graph is represented internally as an adjacency list using a Map.
+ * Each node automatically has an edge to itself when it is added.
+ *
+ * Public API:
+ *   - addNode(node): Adds a node and its reflexive edge.
+ *   - addEdge(from, to): Adds a directed edge from `from` to `to`.
+ *   - hasEdge(from, to): Returns true if an edge exists.
+ *   - getNeighbors(node): Returns an array of all neighbors of `node`.
+ *   - nodes(): Returns an array of all nodes in the graph.
+ *   - edges(): Returns an array of [from, to] pairs representing all edges.
+ */
+
 class Graph {
   constructor() {
+    /** @type {Map<any, Set<any>>} */
     this.adj = new Map();
-    this[Graph._logSymbol] = [];
   }
 
+  /**
+   * Adds a node to the graph. If the node already exists, nothing changes.
+   * A reflexive edge (node → node) is automatically added.
+   *
+   * @param {any} node
+   */
   addNode(node) {
     if (!this.adj.has(node)) {
-      this.adj.set(node, new Set());
+      this.adj.set(node, new Set([node])); // reflexive edge
     }
   }
 
-  addEdge(u, v) {
-    if (!this.adj.has(u)) this.adj.set(u, new Set());
-    if (!this.adj.has(v)) this.adj.set(v, new Set());
-
-    const uSet = this.adj.get(u);
-    const vSet = this.adj.get(v);
-
-    if (!uSet.has(v)) {
-      uSet.add(v);
-      vSet.add(u);
-    }
+  /**
+   * Adds a directed edge from `from` to `to`. If either node does not exist,
+   * it is automatically added (with its reflexive edge).
+   *
+   * @param {any} from
+   * @param {any} to
+   */
+  addEdge(from, to) {
+    if (!this.adj.has(from)) this.addNode(from);
+    if (!this.adj.has(to)) this.addNode(to);
+    this.adj.get(from).add(to);
   }
 
-  removeNode(node) {
-    if (!this.adj.has(node)) return;
-    for (const neighbor of this.adj.get(node)) {
-      this.adj.get(neighbor).delete(node);
-    }
-    this.adj.delete(node);
+  /**
+   * Checks whether an edge from `from` to `to` exists.
+   *
+   * @param {any} from
+   * @param {any} to
+   * @returns {boolean}
+   */
+  hasEdge(from, to) {
+    return this.adj.has(from) && this.adj.get(from).has(to);
   }
 
-  removeEdge(u, v) {
-    if (this.adj.has(u)) this.adj.get(u).delete(v);
-    if (this.adj.has(v)) this.adj.get(v).delete(u);
-  }
-
+  /**
+   * Returns an array of all neighbors of the given node.
+   *
+   * @param {any} node
+   * @returns {any[]}
+   */
   getNeighbors(node) {
     return this.adj.has(node) ? Array.from(this.adj.get(node)) : [];
   }
 
-  hasEdge(u, v) {
-    return this.adj.has(u) && this.adj.get(u).has(v);
-  }
-
-  getNodes() {
+  /**
+   * Returns an array of all nodes in the graph.
+   *
+   * @returns {any[]}
+   */
+  nodes() {
     return Array.from(this.adj.keys());
   }
 
-  getLog() {
-    return this[Graph._logSymbol].slice();
+  /**
+   * Returns an array of all edges in the graph as [from, to] pairs.
+   *
+   * @returns {[any, any][]}
+   */
+  edges() {
+    const edges = [];
+    for (const [from, neighbors] of this.adj.entries()) {
+      for (const to of neighbors) {
+        edges.push([from, to]);
+      }
+    }
+    return edges;
   }
 }
 
-Graph._logSymbol = Symbol('log');
-
-function createGraph() {
-  const graph = new Graph();
-
-  const handler = {
-    get(target, prop, receiver) {
-      const value = target[prop];
-      if (typeof value === 'function') {
-        // Mutating methods that should be logged
-        if (['addNode', 'addEdge', 'removeNode', 'removeEdge'].includes(prop)) {
-          return function (...args) {
-            const result = value.apply(target, args);
-            target[Graph._logSymbol].push({ method: prop, args });
-            return result;
-          };
-        }
-        // Non-mutating methods (including getLog)
-        return value.bind(target);
-      }
-      return value;
-    },
-  };
-
-  return new Proxy(graph, handler);
-}
-
-module.exports = { Graph, createGraph };
+module.exports = Graph;
