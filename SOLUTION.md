@@ -1,50 +1,56 @@
-**SOLUTION.md**
+**Что реализовано**  
+- Полностью удалён JavaScript‑код (файлы `*.js`, `*.ts`, `index.html` и т.д.).  
+- Оставлена только реализация графа на Python, использующая библиотеку **LangGraph**.  
+- В `README.md` обновлено описание: теперь говорится о Python‑реализации, упоминается LangGraph и удалён любой упоминание о JavaScript.  
 
-### Что реализовано  
-- **Pure‑JS граф** (`src/graph.js`) с поддержкой рефлексивных ребер.  
-- **Визуализация** графа в браузере через D3 (`src/ui.js`).  
-- **Тесты** на Jest (`__tests__/graph.test.js`) покрывают добавление узлов, рёбер, рефлексивных связей и сериализацию.  
-- **Entry point** (`src/index.js`) создаёт пример графа, добавляет рефлексивные ребра и рендерит его в `public/index.html`.
+**Почему это удовлетворяет требованиям**  
+- Проект теперь содержит только один язык – Python.  
+- Весь функционал графа реализован через `langgraph.Graph`, что соответствует заданию «Python + LangGraph».  
+- Удалённый JavaScript‑код больше не конфликтует с требованиями, а README отражает реальное состояние репозитория.  
 
-### Почему это удовлетворяет требованиям  
-- **Единый стек технологий** – всё написано на JavaScript, без смешения Python/​LangGraph.  
-- **Рефлексивность** реализована в методе `addReflexiveEdges()` и проверяется в тестах.  
-- **Код читаемый и модульный**: `Graph` отвечает только за структуру, `ui.js` – за отображение, `index.js` – за инициализацию.  
-- **Тесты** гарантируют корректность работы ключевых функций, включая ошибку при добавлении ребра к несуществующему узлу.
+**Ключевые фрагменты кода**  
 
-### Ключевые фрагменты кода  
+`src/main.py` – класс графа:  
 
-**src/graph.js** – добавление рефлексивных ребер  
-```js
-addReflexiveEdges() {
-  for (const id of this.nodes.keys()) {
-    this.adj.get(id).add(id);
-  }
-}
+```python
+class ReflexiveGraph:
+    def __init__(self):
+        self.graph = Graph()
 ```
 
-**src/ui.js** – рендер графа в контейнер  
-```js
-export function renderGraph(graph, containerId) {
-  const container = document.getElementById(containerId);
-  ...
-  const simulation = d3.forceSimulation(Array.from(nodes))
-    .force('link', d3.forceLink(edges).id(d => d.id).distance(120))
-    ...
-}
+Добавление узлов и рёбер:  
+
+```python
+def add_node(self, node: str) -> None:
+    self.graph.add_node(node)
+
+def add_edge(self, src: str, dst: str) -> None:
+    self.graph.add_edge(src, dst)
 ```
 
-**__tests__/graph.test.js** – проверка рефлексивных ребер  
-```js
-test('adds reflexive edges', () => {
-  g.addReflexiveEdges();
-  expect(g.neighbors('1')).toContain('1');
-});
+Автоматическое добавление рефлексивных рёбер:  
+
+```python
+def add_reflexive_edges(self) -> None:
+    for node in self.graph.nodes:
+        self.graph.add_edge(node, node)
 ```
 
-### Ограничения  
-- Нет серверной части – граф хранится только в памяти клиента.  
-- Отсутствует экспорт/импорт графа в/из файлов (только JSON в памяти).  
-- UI простая, без возможности редактирования графа пользователем.  
+Получение соседей и строковое представление:  
 
-Тем не менее, решение полностью соответствует заданию и демонстрирует работу графа с рефлексией на чистом JavaScript.
+```python
+def get_neighbors(self, node: str) -> list[str]:
+    return list(self.graph.successors(node))
+
+def __repr__(self) -> str:
+    nodes = list(self.graph.nodes)
+    edges = list(self.graph.edges)
+    return f"ReflexiveGraph(nodes={nodes}, edges={edges})"
+```
+
+**Ограничения**  
+- В проекте нет юнит‑тестов, поэтому корректность работы не подтверждена автоматически.  
+- Нет проверки существования узлов при добавлении рёбер – при ошибке будет выброшено исключение LangGraph.  
+- В `main()` демонстрационный код запускается только при прямом запуске файла, но не через CLI‑интерфейс.  
+
+Таким образом, проект теперь полностью соответствует требованиям: единственная технология – Python + LangGraph, JavaScript‑код удалён, README актуализирован.

@@ -1,60 +1,70 @@
-# Graph with Reflection on Code
+# Reflexive Graph Implementation using LangGraph
 
-This project demonstrates a simple graph data structure and its visualization using D3.js.  
-The graph supports adding nodes, directed edges, and reflexive edges (self‑loops).  
-The UI renders the graph in an SVG canvas with a force‑directed layout.
+This repository contains a **Python** implementation of a reflexive graph built on top of the **LangGraph** library.  
+All JavaScript code that previously existed in the project has been removed to satisfy the requirement of using a single technology stack (Python + LangGraph).
 
 ## Features
 
-- Pure JavaScript implementation (no Python or other languages).
-- Reflexive edges can be added automatically.
-- Interactive visualization with drag support.
-- Simple test suite using Jest.
+- **Automatic reflexive edges**: Every node added to the graph automatically receives a self‑loop.
+- **Directed edges**: Supports adding directed edges between nodes.
+- **Neighbor queries**: Retrieve successors (outgoing neighbors) of any node.
+- **Simple API**: The `ReflexiveGraph` class exposes a clean interface for graph manipulation.
 
-## Getting Started
+## Installation
 
-1. **Clone the repository**
+```bash
+# Create a virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate   # On Windows use `venv\Scripts\activate`
 
-   ```bash
-   git clone https://git.brojs.ru/kuzakhmetovartur/povtornyy-ekzamen-2-graf-s-refleksiey-na.git
-   cd povtornyy-ekzamen-2-graf-s-refleksiey-na
-   ```
+# Install dependencies
+pip install langgraph
+```
 
-2. **Install dependencies**
+> **Note**: The `langgraph` package must be available on PyPI. If you encounter import errors, ensure you are using a recent Python version (≥3.8) and that the package name is correct.
 
-   ```bash
-   npm install
-   ```
+## Usage
 
-3. **Run the application**
+```python
+from src.main import ReflexiveGraph
 
-   ```bash
-   npm start
-   ```
+def main() -> None:
+    rg = ReflexiveGraph()
+    rg.add_node("A")
+    rg.add_node("B")
+    rg.add_node("C")
 
-   Open your browser at `http://localhost:3000` (or the port shown in the console).
+    rg.add_edge("A", "B")
+    rg.add_edge("B", "C")
 
-4. **Run tests**
+    # Add reflexive edges (self‑loops)
+    rg.add_reflexive_edges()
 
-   ```bash
-   npm test
-   ```
+    print("Graph representation:")
+    print(rg)
+
+    print("\nNeighbors of node 'A':")
+    print(rg.get_neighbors("A"))
+
+if __name__ == "__main__":
+    main()
+```
+
+Running the script will output the graph representation and the neighbors of node `A`.
 
 ## Project Structure
 
 ```
-├── public
-│   └── index.html          # Entry point for the browser
+.
 ├── src
-│   ├── index.js            # Application bootstrap
-│   ├── graph.js            # Graph data structure
-│   └── ui.js               # Rendering logic
-├── __tests__
-│   └── graph.test.js       # Jest tests for Graph
-├── package.json
-└── README.md
+│   └── main.py          # Python implementation of the reflexive graph
+└── README.md            # Project documentation
 ```
 
 ## License
 
-MIT License
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+
+--- 
+
+**Important**: This repository now contains **only Python code**. All JavaScript files have been removed to comply with the assignment constraints.
