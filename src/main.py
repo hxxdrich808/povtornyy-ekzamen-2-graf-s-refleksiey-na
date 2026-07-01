@@ -1,105 +1,84 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 """
-Reflexive Graph Implementation using LangGraph
-
-This module defines a simple graph data structure that supports adding nodes,
-adding directed edges, and automatically adding reflexive edges (self-loops)
-for each node. The implementation relies on the LangGraph library to
-manage the underlying graph representation.
-
-Author: Artur Kuzakhmetov
+A simple LangGraph example that demonstrates reflection on code.
+The graph has three nodes:
+1. start_node - initializes the state.
+2. reflect_node - introspects the source code of `target_function`.
+3. end_node - prints the reflected source code.
 """
 
-from langgraph import Graph
+import inspect
+from langgraph.graph import StateGraph, END
 
-
-class ReflexiveGraph:
+# Define a target function whose source code will be reflected.
+def target_function(x: int, y: int) -> int:
     """
-    A graph that automatically adds reflexive edges (self-loops) for each node.
+    Adds two integers and returns the result.
     """
+    return x + y
 
-    def __init__(self):
-        """
-        Initialize an empty LangGraph instance.
-        """
-        self.graph = Graph()
+# Node definitions
+def start_node(state: dict) -> dict:
+    """
+    Entry point of the graph. Sets an initial message.
+    """
+    state["message"] = "Graph started."
+    return state
 
-    def add_node(self, node: str) -> None:
-        """
-        Add a node to the graph.
+def reflect_node(state: dict) -> dict:
+    """
+    Retrieves the source code of `target_function` using inspect.
+    Stores the source code in the state under the key 'source'.
+    """
+    source = inspect.getsource(target_function)
+    state["source"] = source
+    return state
 
-        Parameters
-        ----------
-        node : str
-            The identifier of the node to add.
-        """
-        self.graph.add_node(node)
+def end_node(state: dict) -> dict:
+    """
+    Final node that prints the reflected source code.
+    """
+    print("\n=== Reflected Source Code ===")
+    print(state.get("source", "No source found."))
+    print("=============================\n")
+    return state
 
-    def add_edge(self, src: str, dst: str) -> None:
-        """
-        Add a directed edge from src to dst.
+# Build the graph
+def build_graph() -> StateGraph:
+    """
+    Constructs and returns a LangGraph StateGraph with the defined nodes.
+    """
+    graph = StateGraph(dict)
 
-        Parameters
-        ----------
-        src : str
-            Source node identifier.
-        dst : str
-            Destination node identifier.
-        """
-        self.graph.add_edge(src, dst)
+    # Add nodes
+    graph.add_node("start", start_node)
+    graph.add_node("reflect", reflect_node)
+    graph.add_node("end", end_node)
 
-    def add_reflexive_edges(self) -> None:
-        """
-        Add a self-loop (reflexive edge) for every node in the graph.
-        """
-        for node in self.graph.nodes:
-            self.graph.add_edge(node, node)
+    # Define entry point and edges
+    graph.set_entry_point("start")
+    graph.add_edge("start", "reflect")
+    graph.add_edge("reflect", "end")
+    graph.add_edge("end", END)
 
-    def get_neighbors(self, node: str) -> list[str]:
-        """
-        Retrieve the successors (outgoing neighbors) of a given node.
-
-        Parameters
-        ----------
-        node : str
-            Node identifier.
-
-        Returns
-        -------
-        list[str]
-            List of successor node identifiers.
-        """
-        return list(self.graph.successors(node))
-
-    def __repr__(self) -> str:
-        """
-        Return a string representation of the graph.
-        """
-        nodes = list(self.graph.nodes)
-        edges = list(self.graph.edges)
-        return f"ReflexiveGraph(nodes={nodes}, edges={edges})"
-
+    return graph
 
 def main() -> None:
     """
-    Demonstrate the usage of ReflexiveGraph.
+    Main entry point for running the graph.
     """
-    rg = ReflexiveGraph()
-    rg.add_node("A")
-    rg.add_node("B")
-    rg.add_node("C")
+    graph = build_graph()
+    app = graph.compile()
 
-    rg.add_edge("A", "B")
-    rg.add_edge("B", "C")
-
-    # Add reflexive edges (self-loops)
-    rg.add_reflexive_edges()
-
-    print("Graph representation:")
-    print(rg)
-
-    print("\nNeighbors of node 'A':")
-    print(rg.get_neighbors("A"))
-
+    # Invoke the graph with an empty initial state
+    try:
+        result = app.invoke({})
+        # The result contains the final state; we can inspect it if needed.
+        # For this example, the end_node already prints the source code.
+    except Exception as e:
+        print(f"An error occurred while running the graph: {e}")
 
 if __name__ == "__main__":
     main()

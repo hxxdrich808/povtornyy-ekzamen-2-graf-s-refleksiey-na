@@ -1,70 +1,40 @@
-# Reflexive Graph Implementation using LangGraph
+# LangGraph Reflection Example
 
-This repository contains a **Python** implementation of a reflexive graph built on top of the **LangGraph** library.  
-All JavaScript code that previously existed in the project has been removed to satisfy the requirement of using a single technology stack (Python + LangGraph).
+This repository demonstrates a simple **LangGraph** workflow that performs reflection on a Python function's source code. The graph consists of three nodes:
 
-## Features
+1. **start_node** – Initializes the graph state.
+2. **reflect_node** – Uses Python's `inspect` module to retrieve the source code of `target_function`.
+3. **end_node** – Prints the reflected source code.
 
-- **Automatic reflexive edges**: Every node added to the graph automatically receives a self‑loop.
-- **Directed edges**: Supports adding directed edges between nodes.
-- **Neighbor queries**: Retrieve successors (outgoing neighbors) of any node.
-- **Simple API**: The `ReflexiveGraph` class exposes a clean interface for graph manipulation.
+## Requirements
 
-## Installation
+- Python 3.x
+- `langchain_openai`
+- `langchain_core`
+- `langgraph`
+
+Install the dependencies with:
 
 ```bash
-# Create a virtual environment (optional but recommended)
-python -m venv venv
-source venv/bin/activate   # On Windows use `venv\Scripts\activate`
-
-# Install dependencies
-pip install langgraph
+pip install -r requirements.txt
 ```
 
-> **Note**: The `langgraph` package must be available on PyPI. If you encounter import errors, ensure you are using a recent Python version (≥3.8) and that the package name is correct.
+## Running the Example
 
-## Usage
-
-```python
-from src.main import ReflexiveGraph
-
-def main() -> None:
-    rg = ReflexiveGraph()
-    rg.add_node("A")
-    rg.add_node("B")
-    rg.add_node("C")
-
-    rg.add_edge("A", "B")
-    rg.add_edge("B", "C")
-
-    # Add reflexive edges (self‑loops)
-    rg.add_reflexive_edges()
-
-    print("Graph representation:")
-    print(rg)
-
-    print("\nNeighbors of node 'A':")
-    print(rg.get_neighbors("A"))
-
-if __name__ == "__main__":
-    main()
+```bash
+python src/main.py
 ```
 
-Running the script will output the graph representation and the neighbors of node `A`.
+You should see the source code of `target_function` printed to the console.
 
 ## Project Structure
 
 ```
-.
+├── requirements.txt
 ├── src
-│   └── main.py          # Python implementation of the reflexive graph
-└── README.md            # Project documentation
+│   ├── __init__.py
+│   └── main.py
+└── README.md
 ```
 
-## License
-
-This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
-
---- 
-
-**Important**: This repository now contains **only Python code**. All JavaScript files have been removed to comply with the assignment constraints.
+No JavaScript code is included; the entire project is implemented in Python using the LangGraph framework.
