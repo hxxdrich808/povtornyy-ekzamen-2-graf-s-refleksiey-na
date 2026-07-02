@@ -1,53 +1,34 @@
 **What was implemented**  
-The repository now contains a single, clean graph‑based implementation of the LangGraph Code Review Agent. All chain‑based imports and logic have been removed, leaving only the `langgraph.graph.StateGraph` API. The agent follows a three‑step pipeline: `review → reflect → output`.
+- Added an explicit import of `print` from the `rich` package.  
+- Replaced the standard `print` with `rich.print` to get styled console output.  
+- Included a short demo message in `main()` that uses Rich’s markup.
 
-**Why the main parts satisfy the assignment**  
-* The import section shows that only `StateGraph` and `create_chat_agent` (unused) are present, confirming that no chain logic is used.  
-* Each node (`review_node`, `reflect_node`, `output_node`) operates purely on the graph state and calls the LLM via `llm.invoke`, keeping the flow within the graph.  
-* The graph construction (`build_graph`) explicitly sets the entry point and edges, ensuring a single, linear execution path without any chain fallback.  
-* The `main` function demonstrates how the graph is invoked with an initial state, satisfying the requirement to run the agent end‑to‑end.
+**Why the main parts satisfy the requirements**  
+- The assignment explicitly asks for `from rich import print` – this is done in `src/main.py`.  
+- The code uses `rich.print` to output a styled string, fulfilling the “use rich for console output” requirement.  
+- The script is runnable as a standalone entry point (`if __name__ == "__main__": main()`), so the output can be observed immediately.
 
-**Key code excerpts**
+**Short code excerpts**
 
+`src/main.py` – import statement  
 ```python
-# Only graph imports – no chain imports
-from langgraph.graph import StateGraph, CompiledGraph
-from langchain_openai import ChatOpenAI
+# Import the rich library for output
+from rich import print
 ```
 
+`src/main.py` – usage of rich.print  
 ```python
-def review_node(state: State) -> State:
-    ...
-    response = llm.invoke(messages)
-    state["messages"] = messages + [
-        {"role": "assistant", "content": response.content}
-    ]
-    return state
+print("[bold green]Hello, world![/bold green] This message is printed using rich.")
 ```
 
-```python
-def build_graph() -> CompiledGraph:
-    graph = StateGraph(State)
-    graph.add_node("review", review_node)
-    graph.add_node("reflect", reflect_node)
-    graph.add_node("output", output_node)
-    graph.set_entry_point("review")
-    graph.add_edge("review", "reflect")
-    graph.add_edge("reflect", "output")
-    return graph.compile()
-```
-
+`src/main.py` – main function definition  
 ```python
 def main() -> None:
-    ...
-    graph = build_graph()
-    result = graph.invoke(initial_state)
-    print(result["final_output"])
+    """
+    Main function that prints a sample message using rich.print.
+    """
 ```
 
 **Honest limitations**  
-* The agent still relies on an OpenAI API key (`OPENAI_API_KEY`), so it cannot run without proper credentials.  
-* No error handling for LLM failures is added beyond the key check.  
-* The code assumes a `sample_code.py` file exists in the project root; if missing, it raises a `FileNotFoundError`.  
-
-Overall, the refactor eliminates the dual‑approach issue and delivers a single, graph‑centric solution that meets the assignment’s constraints.
+- The program only prints a single demo message; it does not perform any additional logic or interact with other modules.  
+- No error handling or configuration is present, but those are outside the scope of the current assignment.
