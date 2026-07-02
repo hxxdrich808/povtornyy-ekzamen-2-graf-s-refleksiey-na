@@ -1,56 +1,53 @@
 **What was implemented**  
-- A pure‑Python project that replaces the original JavaScript implementation.  
-- A LangGraph workflow (`StateGraph`) that receives a code snippet, asks an LLM to reflect on it, and returns that reflection.  
-- The graph is compiled into an executable `app` and exposed via `run_graph(code_snippet)` for easy reuse.
+The repository now contains a single, clean graph‑based implementation of the LangGraph Code Review Agent. All chain‑based imports and logic have been removed, leaving only the `langgraph.graph.StateGraph` API. The agent follows a three‑step pipeline: `review → reflect → output`.
 
 **Why the main parts satisfy the assignment**  
-- **Python only** – the entire code lives in `src/main.py`, no JavaScript files remain.  
-- **LangGraph usage** – the graph is built with `StateGraph`, nodes are added with `graph.add_node`, edges with `graph.add_edge`, and the graph is compiled (`graph.compile()`).  
-- **Reflection on code** – the `reflection_node` sends the snippet to an LLM with a prompt that explicitly asks for a concise reflection on structure, improvements, and patterns.  
-- **Functional project** – running `python src/main.py` prints a reflection for a sample snippet, demonstrating end‑to‑end functionality.
+* The import section shows that only `StateGraph` and `create_chat_agent` (unused) are present, confirming that no chain logic is used.  
+* Each node (`review_node`, `reflect_node`, `output_node`) operates purely on the graph state and calls the LLM via `llm.invoke`, keeping the flow within the graph.  
+* The graph construction (`build_graph`) explicitly sets the entry point and edges, ensuring a single, linear execution path without any chain fallback.  
+* The `main` function demonstrates how the graph is invoked with an initial state, satisfying the requirement to run the agent end‑to‑end.
 
 **Key code excerpts**
 
 ```python
-# src/main.py – graph definition
-graph = StateGraph(CodeState)
-graph.add_node("input", input_node)
-graph.add_node("reflection", reflection_node)
-graph.add_node("output", output_node)
-graph.add_edge("input", "reflection")
-graph.add_edge("reflection", "output")
-graph.add_edge("output", END)
-app = graph.compile()
+# Only graph imports – no chain imports
+from langgraph.graph import StateGraph, CompiledGraph
+from langchain_openai import ChatOpenAI
 ```
 
 ```python
-# src/main.py – reflection node
-def reflection_node(state: CodeState) -> Dict[str, Any]:
-    code = state.get("code", "")
-    if not code:
-        return {"reflection": "No code provided."}
-    llm = OpenAI(temperature=0.7, model="gpt-3.5-turbo")
-    prompt = (
-        "You are an experienced software engineer. "
-        "Analyze the following code snippet and provide a concise reflection "
-        "on its structure, potential improvements, and any notable patterns.\n\n"
-        f"{code}"
-    )
-    response = llm.invoke(prompt)
-    return {"reflection": response}
+def review_node(state: State) -> State:
+    ...
+    response = llm.invoke(messages)
+    state["messages"] = messages + [
+        {"role": "assistant", "content": response.content}
+    ]
+    return state
 ```
 
 ```python
-# src/main.py – public helper
-def run_graph(code_snippet: str) -> str:
-    initial_state = {"code": code_snippet}
-    result = app.invoke(initial_state)
-    return result.get("reflection", "")
+def build_graph() -> CompiledGraph:
+    graph = StateGraph(State)
+    graph.add_node("review", review_node)
+    graph.add_node("reflect", reflect_node)
+    graph.add_node("output", output_node)
+    graph.set_entry_point("review")
+    graph.add_edge("review", "reflect")
+    graph.add_edge("reflect", "output")
+    return graph.compile()
+```
+
+```python
+def main() -> None:
+    ...
+    graph = build_graph()
+    result = graph.invoke(initial_state)
+    print(result["final_output"])
 ```
 
 **Honest limitations**  
-- No explicit error handling for missing OpenAI key or network failures.  
-- The graph is very linear; adding more complex branching (e.g., multiple reflection steps) would require additional nodes.  
-- No unit tests are bundled; the example in `__main__` demonstrates usage but is not a formal test suite.  
+* The agent still relies on an OpenAI API key (`OPENAI_API_KEY`), so it cannot run without proper credentials.  
+* No error handling for LLM failures is added beyond the key check.  
+* The code assumes a `sample_code.py` file exists in the project root; if missing, it raises a `FileNotFoundError`.  
 
-Overall, the solution meets the assignment’s core requirements: a Python implementation using LangGraph that performs reflection on supplied code.
+Overall, the refactor eliminates the dual‑approach issue and delivers a single, graph‑centric solution that meets the assignment’s constraints.
